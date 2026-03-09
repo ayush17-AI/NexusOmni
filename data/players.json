@@ -1,0 +1,122 @@
+[
+    {
+        "id": "ply_001",
+        "name": "Manya",
+        "team": "GodLike Esports",
+        "role": "IGL",
+        "total_kills": 3500,
+        "headshot_rate": "22.0%",
+        "bio": "Former 8Bit leader, now captaining the new GodLike era.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    },
+    {
+        "id": "ply_002",
+        "name": "Jonathan",
+        "team": "GodLike Esports",
+        "role": "Finisher",
+        "total_kills": 10500,
+        "headshot_rate": "27.0%",
+        "bio": "Red Bull Athlete, MVP of BGIS 2025.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    },
+    {
+        "id": "ply_003",
+        "name": "Spower",
+        "team": "GodLike Esports",
+        "role": "Assaulter",
+        "total_kills": 4000,
+        "headshot_rate": "24.5%",
+        "bio": "Returning prodigy, back-to-back MVP in recent scrims.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    },
+    {
+        "id": "ply_004",
+        "name": "Nakul",
+        "team": "iQOO Team SouL",
+        "role": "IGL",
+        "total_kills": 2900,
+        "headshot_rate": "20.5%",
+        "bio": "Leading the resurgence of Team Soul in 2026.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    },
+    {
+        "id": "ply_005",
+        "name": "Goblin",
+        "team": "iQOO Team SouL",
+        "role": "Assaulter",
+        "total_kills": 4200,
+        "headshot_rate": "25.0%",
+        "bio": "Known for explosive 1v4 clutches.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    },
+    {
+        "id": "ply_006",
+        "name": "Punkk",
+        "team": "Revenant XSpark",
+        "role": "IGL",
+        "total_kills": 3100,
+        "headshot_rate": "21.0%",
+        "bio": "Former GodLike leader, now rebuilding XSpark as a monster.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    },
+    {
+        "id": "ply_007",
+        "name": "NinjaJOD",
+        "team": "Revenant XSpark",
+        "role": "Assaulter",
+        "total_kills": 4900,
+        "headshot_rate": "26.0%",
+        "bio": "One of the highest fraggers in BGIS 2026 Quarter Finals.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    },
+    {
+        "id": "ply_008",
+        "name": "SENSEI",
+        "team": "Wyld Fangs",
+        "role": "IGL",
+        "total_kills": 3200,
+        "headshot_rate": "19.5%",
+        "bio": "Recently moved to lead Wyld Fangs in the 2026 season.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    },
+    {
+        "id": "ply_009",
+        "name": "Admino",
+        "team": "GodLike Esports",
+        "role": "Assaulter",
+        "total_kills": 2500,
+        "headshot_rate": "20.0%",
+        "bio": "Secured event MVP honors in late 2025.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    },
+    {
+        "id": "ply_010",
+        "name": "Jokerr",
+        "team": "iQOO Team SouL",
+        "role": "Support",
+        "total_kills": 2800,
+        "headshot_rate": "21.5%",
+        "bio": "Crucial support player for the current Soul lineup.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    },
+    {
+        "id": "ply_011",
+        "name": "Shadow",
+        "team": "Team XSpark",
+        "role": "IGL",
+        "total_kills": 2650,
+        "headshot_rate": "18.2%",
+        "bio": "BGIS 2024 Champion core. Exceptional zone prediction.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    },
+    {
+        "id": "ply_012",
+        "name": "Sarang",
+        "team": "Revenant XSpark",
+        "role": "Assaulter",
+        "total_kills": 3640,
+        "headshot_rate": "23.1%",
+        "bio": "Highly consistent mechanical player.",
+        "image": "/images/players/forest-elf-placeholder.png"
+    }
+]

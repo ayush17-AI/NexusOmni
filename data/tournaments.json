@@ -1,0 +1,31 @@
+[
+    {
+        "id": "trn_bgis_2026",
+        "name": "BGIS 2026",
+        "status": "ONGOING (Wildcard Stage)",
+        "prize_pool": "₹2 Crore",
+        "start_date": "2026-03-05",
+        "teams": 16,
+        "location": "Online",
+        "stage": "Wildcard Stage (March 5-8, 2026)",
+        "note": "Grand Finals at Chennai Trade Centre, March 27-29"
+    },
+    {
+        "id": "trn_bmps_2026",
+        "name": "Battlegrounds Pro Series (BMPS) Season 5",
+        "status": "Ongoing",
+        "prize_pool": "$150,000",
+        "start_date": "2026-02-10",
+        "teams": 24,
+        "location": "Online"
+    },
+    {
+        "id": "trn_skyesports_2026",
+        "name": "Skyesports Championship 6.0",
+        "status": "Upcoming",
+        "prize_pool": "$50,000",
+        "start_date": "2026-04-01",
+        "teams": 24,
+        "location": "Online"
+    }
+]
