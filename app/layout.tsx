@@ -17,6 +17,8 @@ export const metadata: Metadata = {
   description: "Live BGMI, Free Fire & COD Mobile esports stats, players, and tournament data",
 };
 
+import VideoBG from "@/components/VideoBG";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -24,9 +26,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
+      <body className="relative min-h-screen w-screen overflow-x-hidden">
+        <VideoBG />
         {children}
       </body>
     </html>

@@ -2,7 +2,10 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Starfield from '@/components/portal/Starfield';
+import dynamic from 'next/dynamic';
+
+// Three.js requires browser APIs — must be loaded client-side only
+const BGMIWorld = dynamic(() => import('@/components/BGMIWorld'), { ssr: false });
 
 const COMMAND_LINKS = [
     { label: 'PLAYERS', href: '/bgmi/players' },
@@ -29,8 +32,8 @@ const itemVariants = {
 
 export default function BGMIPage() {
     return (
-        <main className="relative min-h-screen text-white flex flex-col items-center justify-center overflow-hidden">
-            <Starfield />
+        <main className="h-screen w-screen overflow-hidden flex items-center justify-center text-white relative">
+            <BGMIWorld />
 
             {/* Breadcrumb back to home */}
             <Link
@@ -43,18 +46,7 @@ export default function BGMIPage() {
                 </div>
             </Link>
 
-            {/* Background Character Realism Layer */}
-            <div
-                className="fixed inset-0 pointer-events-none"
-                style={{
-                    zIndex: -5,
-                    backgroundImage: 'url(https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1920&auto=format&fit=crop)',
-                    backgroundSize: 'cover',
-                    backgroundPosition: 'center',
-                    opacity: 0.2, // lowered opacity as requested
-                    filter: 'blur(4px) brightness(0.5)'
-                }}
-            />
+
 
             {/* Content Wrapper */}
             <div className="relative z-10 flex flex-col items-center text-center w-full max-w-4xl mx-auto px-4 mt-8">

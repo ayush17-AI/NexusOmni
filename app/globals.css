@@ -9,22 +9,29 @@
   box-sizing: border-box !important;
 }
 
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
 html {
   /* Force background on the root to ensure it covers the entire viewport */
   background: #000 url('/images/portals/starfield_bg.jpg') no-repeat center center fixed !important;
   background-size: cover !important;
-  height: 100vh !important;
   width: 100vw !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  overflow: hidden !important;
 }
 
 body {
-  height: 100vh !important;
   width: 100vw !important;
-  margin: 0 !important;
-  overflow: hidden !important;
-  /* Prevents horizontal scroll from 100vw/scrollbar conflict */
   background: transparent !important;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
 }

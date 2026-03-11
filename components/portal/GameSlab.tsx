@@ -65,12 +65,13 @@ export default function GameSlab(props: GameSlabProps) {
     return (
         <motion.div
             animate={{
-                // Base Layout & Hover standard
+                // Base Layout & Hover standard - using GPU accelerated transforms
                 scale: isThisTransitioning ? 2.5 : (isHovered ? 1.05 : 1),
                 z: isHovered && !props.isTransitioning ? 100 : 0,
                 opacity: isThisTransitioning ? 0 : (isOtherTransitioning ? 0 : (isAnotherHovered ? 0.3 : 1)),
-                filter: isAnotherHovered ? 'blur(4px) saturate(0.5)' : 'blur(0px) saturate(1)',
-                y: isHovered && !props.isTransitioning ? -15 : 0, // Lift slightly on hover
+                // Reduced filter complexity for better performance
+                filter: isAnotherHovered ? 'blur(2px)' : 'blur(0px)',
+                y: isHovered && !props.isTransitioning ? -15 : 0,
             }}
             transition={transitionProps}
             onAnimationComplete={() => {
@@ -81,7 +82,7 @@ export default function GameSlab(props: GameSlabProps) {
             onPointerOver={() => !props.isTransitioning && props.setHoveredIndex(props.index)}
             onPointerOut={() => !props.isTransitioning && props.setHoveredIndex(null)}
             onClick={handlePortalClick}
-            className="relative cursor-pointer select-none group flex flex-col items-center justify-center p-6"
+            className="relative cursor-pointer select-none group flex flex-col items-center justify-center p-6 pointer-events-auto transform-gpu"
             style={{
                 // Establish local 3D space for nested elements
                 transformStyle: 'preserve-3d',

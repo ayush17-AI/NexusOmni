@@ -21,10 +21,7 @@ export default function Home() {
   }, []);
 
   return (
-    <div
-      className="relative min-h-screen w-full overflow-hidden bg-black"
-      style={{ perspective: '1200px', perspectiveOrigin: '50% 50%' }}
-    >
+    <main className="min-h-screen w-full flex items-center justify-center relative">
       <Starfield />
 
       {/* Main content */}
@@ -93,7 +90,7 @@ export default function Home() {
           Hover to illuminate · Click to enter
         </motion.p>
       </div>
-    </div>
+    </main>
   );
 }
 
