@@ -6,9 +6,9 @@ import Starfield from '@/components/portal/Starfield';
 import GameSlab from '@/components/portal/GameSlab';
 
 const GAMES = [
-  { id: 'cod', title: 'CALL OF DUTY', subtitle: 'Tactical Combat', href: '/cod' },
-  { id: 'ff', title: 'FREE FIRE', subtitle: 'Survival Shooter', href: '/freefire' },
   { id: 'bgmi', title: 'BGMI', subtitle: 'Battle Royale', href: '/bgmi' },
+  { id: 'ff', title: 'FREE FIRE', subtitle: 'Survival Shooter', href: '/freefire' },
+  { id: 'cod', title: 'CALL OF DUTY', subtitle: 'Tactical Combat', href: '/cod' },
 ];
 
 export default function Home() {
@@ -22,7 +22,7 @@ export default function Home() {
 
   return (
     <div
-      className="relative min-h-screen w-full overflow-hidden bg-black"
+      className="relative min-h-screen w-screen overflow-hidden bg-black"
       style={{ perspective: '1200px', perspectiveOrigin: '50% 50%' }}
     >
       <Starfield />

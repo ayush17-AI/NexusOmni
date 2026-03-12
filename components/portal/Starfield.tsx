@@ -66,7 +66,7 @@ export default function Starfield() {
         };
     }, [mounted]);
 
-    if (!mounted) return <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -10, transform: 'translateZ(-500px)', backfaceVisibility: 'hidden' }} />;
+    if (!mounted) return <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', zIndex: -10, transform: 'translateZ(-500px) scale(1.72)', backfaceVisibility: 'hidden' }} />;
 
     return (
         <canvas
@@ -81,7 +81,7 @@ export default function Starfield() {
                 pointerEvents: 'none',
                 zIndex: -10,
                 overflow: 'hidden',
-                transform: 'translateZ(-500px)',
+                transform: 'translateZ(-500px) scale(1.72)',
                 backfaceVisibility: 'hidden',
                 WebkitBackfaceVisibility: 'hidden',
             }}
