@@ -7,8 +7,8 @@ import GameSlab from '@/components/portal/GameSlab';
 
 const GAMES = [
   { id: 'bgmi', title: 'BGMI', subtitle: 'Battle Royale', href: '/bgmi' },
-  { id: 'ff', title: 'FREE FIRE', subtitle: 'Survival Shooter', href: '/freefire' },
-  { id: 'cod', title: 'COD MOBILE', subtitle: 'Tactical Combat', href: '/cod' },
+  { id: 'valorant', title: 'VALORANT', subtitle: 'Tactical Shooter', href: '/valorant' },
+  { id: 'coming', title: 'COMING SOON', subtitle: 'Other Game', href: '#' },
 ];
 
 export default function Home() {

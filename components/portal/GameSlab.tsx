@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
-type GameKey = 'bgmi' | 'ff' | 'cod';
+type GameKey = 'bgmi' | 'valorant' | 'coming';
 
 interface GameSlabProps {
     id: string;
@@ -22,13 +22,13 @@ const CONFIG = {
         accent: '#FFB800',
         image: 'https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=800&auto=format&fit=crop',
     },
-    ff: {
-        accent: '#00FFA3',
-        image: 'https://images.unsplash.com/photo-1538481199705-c710c4e965fc?q=80&w=800&auto=format&fit=crop',
+    valorant: {
+        accent: '#FF4655',
+        image: 'https://images.unsplash.com/photo-1518717758536-85ae29035b6d?q=80&w=800&auto=format&fit=crop',
     },
-    cod: {
-        accent: '#00A3FF',
-        image: 'https://images.unsplash.com/photo-1509114397022-ed747cca3f65?q=80&w=800&auto=format&fit=crop',
+    coming: {
+        accent: '#777777',
+        image: 'https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=800&auto=format&fit=crop',
     }
 };
 
