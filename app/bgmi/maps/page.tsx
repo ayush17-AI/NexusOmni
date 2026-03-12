@@ -79,7 +79,7 @@ export default function MapsPage() {
 
     return (
         <main
-            className="min-h-screen w-screen text-white overflow-hidden relative flex flex-col items-center"
+            className="min-h-screen w-screen text-white overflow-hidden relative flex flex-col items-center justify-center p-6"
             style={{ background: 'radial-gradient(ellipse 140% 100% at 50% 0%, #060d1f 0%, #010308 80%)' }}
         >
             {/* ── PREMIUM ANIMATED BACKGROUND ── */}
@@ -98,7 +98,7 @@ export default function MapsPage() {
 
             {/* ── HEADER ── */}
             <motion.div
-                className="relative z-10 text-center pt-28 pb-12 px-6"
+                className="relative z-10 text-center mb-10"
                 initial={{ opacity: 0, y: -32 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.9, ease: [0.22, 1, 0.36, 1] }}
@@ -136,7 +136,7 @@ export default function MapsPage() {
 
             {/* ── 3D PORTAL GRID ── */}
             <div
-                className="relative z-10 flex flex-col md:flex-row items-stretch justify-center gap-7 w-full max-w-6xl px-6 pb-20"
+                className="relative z-10 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-6xl px-6"
                 style={{ perspective: '1200px', perspectiveOrigin: '50% 45%' }}
             >
                 {/* Glow halo behind portals */}

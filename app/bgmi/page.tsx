@@ -2,10 +2,6 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import dynamic from 'next/dynamic';
-
-// Three.js requires browser APIs — must be loaded client-side only
-const BGMIWorld = dynamic(() => import('@/components/BGMIWorld'), { ssr: false });
 
 const COMMAND_LINKS = [
     { label: 'PLAYERS', href: '/bgmi/players' },
@@ -32,14 +28,13 @@ const itemVariants = {
 
 export default function BGMIPage() {
     return (
-        <main className="h-screen w-screen overflow-hidden flex items-center justify-center text-white relative">
-            <BGMIWorld />
+        <main className="min-h-screen w-screen overflow-x-hidden flex items-center justify-center text-white relative">
 
             {/* Breadcrumb back to home */}
             <Link
                 href="/"
-                className="absolute top-8 left-8 z-20 text-xs tracking-[0.3em] transition-colors hover:text-white"
-                style={{ color: 'rgba(243,175,25,0.5)', fontFamily: 'Exo 2, sans-serif' }}
+                className="absolute top-8 left-8 z-20 text-xs tracking-[0.3em] transition-colors hover:text-[#F3AF19]"
+                style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'Exo 2, sans-serif' }}
             >
                 <div className="flex items-center gap-2">
                     <span className="opacity-50">◄</span> NEXUS PORTAL
@@ -48,7 +43,6 @@ export default function BGMIPage() {
 
 
 
-            {/* Content Wrapper */}
             <div className="relative z-10 flex flex-col items-center text-center w-full max-w-4xl mx-auto px-4 mt-8">
 
                 {/* ── HERO TITLE ── */}
@@ -56,7 +50,7 @@ export default function BGMIPage() {
                     initial={{ opacity: 0, y: -30 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.8, ease: "easeOut" }}
-                    className="mb-12 md:mb-16 flex flex-col items-center"
+                    className="mb-16 flex flex-col items-center"
                 >
                     <p className="text-xs tracking-[0.4em] mb-4 text-[#F3AF19] font-['Exo_2']" style={{ fontFamily: 'Exo 2, sans-serif' }}>
                         ◆ BATTLEGROUND ZONE
@@ -69,7 +63,7 @@ export default function BGMIPage() {
                             WebkitTextFillColor: 'transparent',
                             backgroundClip: 'text',
                             fontFamily: 'Rajdhani, sans-serif',
-                            textShadow: '0 20px 40px rgba(0,0,0,0.5)' // Gives depth over the stars
+                            textShadow: '0 20px 40px rgba(0,0,0,0.5)'
                         }}
                     >
                         BGMI
@@ -79,7 +73,7 @@ export default function BGMIPage() {
                     </p>
                 </motion.div>
 
-                {/* ── COMMAND CENTER NAVIGATION ── */}
+                {/* ── COMMAND CENTER NAVIGATION PORTALS ── */}
                 <motion.div
                     variants={containerVariants}
                     initial="hidden"

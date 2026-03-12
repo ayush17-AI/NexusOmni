@@ -3,7 +3,6 @@
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import Starfield from '@/components/portal/Starfield';
 
 interface Tournament {
     id: string;
@@ -55,7 +54,6 @@ export default function TournamentsPage() {
     return (
         <div className="w-screen min-h-screen bg-black" style={{ width: '100vw' }}>
             <main className="relative min-h-screen text-white w-full">
-                <Starfield />
 
                 {/* Breadcrumbs */}
                 <div className="absolute top-8 left-8 z-30">
