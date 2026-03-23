@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback, useEffect } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 
 type Tool = 'pan' | 'pen' | 'marker' | 'shape' | 'eraser';
@@ -28,7 +28,7 @@ const ICONS = {
     trash: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
 };
 
-const TOOLS: { id: Tool; icon: JSX.Element; label: string; cursor: string }[] = [
+const TOOLS: { id: Tool; icon: React.ReactNode; label: string; cursor: string }[] = [
     { id: 'pan', icon: ICONS.pan, label: 'Pan', cursor: 'grab' },
     { id: 'pen', icon: ICONS.pen, label: 'Pencil', cursor: 'crosshair' },
     { id: 'eraser', icon: ICONS.eraser, label: 'Eraser', cursor: 'cell' },
