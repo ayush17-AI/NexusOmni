@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import Starfield from '@/components/portal/Starfield';
+import InteractiveStarfield from '@/components/InteractiveStarfield';
 import GameSlab from '@/components/portal/GameSlab';
 
 const GAMES = [
@@ -22,10 +22,10 @@ export default function Home() {
 
   return (
     <div
-      className="relative min-h-screen w-screen overflow-hidden bg-black"
+      className="relative min-h-screen w-screen overflow-hidden" // Removed bg-black to show the canvas behind
       style={{ perspective: '1200px', perspectiveOrigin: '50% 50%' }}
     >
-      <Starfield />
+      <InteractiveStarfield />
 
       {/* Main content */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center">

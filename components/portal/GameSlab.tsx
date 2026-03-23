@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import { useEffect } from 'react';
 
 type GameKey = 'cod' | 'ff' | 'bgmi';
 
@@ -35,6 +36,11 @@ const CONFIG = {
 export default function GameSlab(props: GameSlabProps) {
     const router = useRouter();
     const cfg = CONFIG[props.id as GameKey];
+
+    // Eagerly prefetch the route bundle so the chunk and server payload are loaded before click
+    useEffect(() => {
+        router.prefetch(props.href);
+    }, [props.href, router]);
 
     // Define structural values manually or via framer variants
     const isHovered = props.hoveredIndex === props.index;
@@ -75,7 +81,8 @@ export default function GameSlab(props: GameSlabProps) {
             transition={transitionProps}
             onAnimationComplete={() => {
                 if (isThisTransitioning) {
-                    window.location.href = '/bgmi';
+                    // Replaced hard reload which threw away the SPA state with client-side push
+                    router.push('/bgmi');
                 }
             }}
             onPointerOver={() => !props.isTransitioning && props.setHoveredIndex(props.index)}

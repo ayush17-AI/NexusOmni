@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useRef, useCallback, useEffect } from 'react';
 import Link from 'next/link';
@@ -19,35 +19,80 @@ const COLORS = [
     { hex: '#ffffff', label: 'White' },
 ];
 
-const TOOLS: { id: Tool; icon: string; label: string; cursor: string }[] = [
-    { id: 'pan', icon: '✋', label: 'Pan / Move', cursor: 'grab' },
-    { id: 'pen', icon: '✏️', label: 'Freehand Draw', cursor: 'crosshair' },
-    { id: 'marker', icon: '📍', label: 'Strategy Marker', cursor: 'crosshair' },
-    { id: 'shape', icon: '⬛', label: 'Shape / Zone', cursor: 'crosshair' },
-    { id: 'eraser', icon: '🧽', label: 'Eraser', cursor: 'cell' },
+const ICONS = {
+    pan: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M5 9l-3 3 3 3"/><path d="M9 5l3-3 3 3"/><path d="M19 9l3 3-3 3"/><path d="M9 19l3 3 3-3"/><path d="M2 12h20"/><path d="M12 2v20"/></svg>,
+    pen: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M21.17 6.81a1 1 0 0 0-3.98-3.98L3.84 16.17a2 2 0 0 0-.5.83l-1.32 4.35a.5.5 0 0 0 .62.62l4.35-1.32a2 2 0 0 0 .83-.5z"/><path d="M15 5l4 4"/></svg>,
+    eraser: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M7 21L2.7 16.7a2 2 0 0 1 0-2.8l11.5-11.5a2 2 0 0 1 2.8 0l4.3 4.3c.8.8.8 2 0 2.8L9.8 21z"/><path d="M7 21h14"/><path d="M10 9l5 5"/></svg>,
+    shape: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/></svg>,
+    marker: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>,
+    trash: <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+};
+
+const TOOLS: { id: Tool; icon: JSX.Element; label: string; cursor: string }[] = [
+    { id: 'pan', icon: ICONS.pan, label: 'Pan', cursor: 'grab' },
+    { id: 'pen', icon: ICONS.pen, label: 'Pencil', cursor: 'crosshair' },
+    { id: 'eraser', icon: ICONS.eraser, label: 'Eraser', cursor: 'cell' },
+    { id: 'shape', icon: ICONS.shape, label: 'Zone', cursor: 'crosshair' },
+    { id: 'marker', icon: ICONS.marker, label: 'Marker', cursor: 'crosshair' },
 ];
 
 export default function MapViewer({ map, mapName }: Props) {
     const containerRef = useRef<HTMLDivElement>(null);
     const innerRef = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const coordsRef = useRef<HTMLParagraphElement>(null);
+    const zoomLevelRef = useRef<HTMLSpanElement>(null);
 
-    const [scale, setScale] = useState(1);
-    const [offset, setOffset] = useState({ x: 0, y: 0 });
-    const [isDragging, setIsDragging] = useState(false);
-    const dragStart = useRef({ x: 0, y: 0 });
+    // High performance Transform state detached from React tree
+    const transformRef = useRef({ x: 0, y: 0, scale: 1 });
+    const isDraggingRef = useRef(false);
+    const dragStartRef = useRef({ x: 0, y: 0 });
 
     const [activeTool, setActiveTool] = useState<Tool>('pan');
     const [brushSize, setBrushSize] = useState(4);
     const [activeColor, setActiveColor] = useState(COLORS[0].hex);
-    const isDrawing = useRef(false);
+    
+    // Drawing loop state
+    const isDrawingRef = useRef(false);
     const shapeStart = useRef<{ x: number; y: number } | null>(null);
     const snapshotRef = useRef<ImageData | null>(null);
     const lastPoint = useRef<{ x: number; y: number } | null>(null);
+    const pointsQueue = useRef<{x: number, y: number}[]>([]);
 
     const [canvasSize, setCanvasSize] = useState({ w: 800, h: 600 });
     const [pins, setPins] = useState<{ id: number; px: number; py: number }[]>([]);
-    const [coords, setCoords] = useState({ x: 0, y: 0 });
+
+    /* ── Performant UI Updaters ── */
+    const updateTransformUI = useCallback(() => {
+        if (innerRef.current) {
+            // Rigid body translation over an absolute (0,0) transform pivot
+            innerRef.current.style.transform = `translate(${transformRef.current.x}px, ${transformRef.current.y}px) scale(${transformRef.current.scale})`;
+        }
+        if (zoomLevelRef.current) {
+            zoomLevelRef.current.innerText = `${Math.round(transformRef.current.scale * 100)}%`;
+        }
+    }, []);
+
+    /* ── Initial Map Centering ── */
+    const resetView = useCallback(() => {
+        const el = containerRef.current;
+        const inner = innerRef.current;
+        if (el && inner) {
+            const cw = el.clientWidth;
+            const ch = el.clientHeight;
+            const iw = inner.offsetWidth;
+            const ih = inner.offsetHeight;
+            // Center map relative to viewport strictly using translation math
+            transformRef.current = { 
+                x: (cw - iw) / 2, 
+                y: (ch - ih) / 2, 
+                scale: 1 
+            };
+        } else {
+            transformRef.current = { x: 0, y: 0, scale: 1 };
+        }
+        updateTransformUI();
+    }, [updateTransformUI]);
 
     /* ── Sync canvas pixel size to displayed element size ── */
     useEffect(() => {
@@ -60,16 +105,41 @@ export default function MapViewer({ map, mapName }: Props) {
                     h: Math.round(e.contentRect.height),
                 });
             }
+            // Trigger 0,0 alignment once elements mount and get geometry
+            resetView();
         });
         ro.observe(el);
         return () => ro.disconnect();
-    }, []);
+    }, [resetView]);
 
-    /* ── Scroll-to-zoom ── */
+    /* ── Math-certified Focal Zoom Engine ── */
     const handleWheel = useCallback((e: WheelEvent) => {
         e.preventDefault();
-        setScale(prev => Math.min(Math.max(prev - e.deltaY * 0.003, 0.3), 8));
-    }, []);
+        const el = containerRef.current;
+        if (!el) return;
+
+        const rect = el.getBoundingClientRect();
+        
+        // Mouse coordinate relative to the unscaled container viewport
+        const cursorX = e.clientX - rect.left;
+        const cursorY = e.clientY - rect.top;
+
+        const t = transformRef.current;
+        const zoomSensitivity = 0.002;
+        
+        // Exponential zoom limits matching standard interactive maps (0.5x to 4x)
+        const oldScale = t.scale;
+        const newScale = Math.min(Math.max(oldScale - e.deltaY * zoomSensitivity, 0.5), 4);
+        
+        // ── RATIO-BASED CENTERED ZOOM CALCULUS ── //
+        // Shifts the transform (x,y) inversely to the scale change around the cursor pivot
+        // so the pixel under the mouse never visually moves across the screen.
+        t.x = cursorX - (cursorX - t.x) * (newScale / oldScale);
+        t.y = cursorY - (cursorY - t.y) * (newScale / oldScale);
+        t.scale = newScale;
+
+        updateTransformUI();
+    }, [updateTransformUI]);
 
     useEffect(() => {
         const el = containerRef.current;
@@ -84,48 +154,95 @@ export default function MapViewer({ map, mapName }: Props) {
     const toCanvasCoords = (clientX: number, clientY: number) => {
         const canvas = canvasRef.current;
         if (!canvas) return { x: 0, y: 0 };
-        const rect = canvas.getBoundingClientRect();
+        // getBoundingClientRect natively returns the current fully scaled DOM geometry 
+        // regardless of scale ratios, guaranteeing drawing layer alignment perfectly.
+        const rect = canvas.getBoundingClientRect(); 
         return {
             x: (clientX - rect.left) * (canvas.width / rect.width),
             y: (clientY - rect.top) * (canvas.height / rect.height),
         };
     };
 
-    const setupCtx = (c: CanvasRenderingContext2D) => {
-        c.strokeStyle = activeColor;
-        c.lineWidth = brushSize;
+    const setupCtx = (c: CanvasRenderingContext2D, isEraser = false) => {
+        if (isEraser) {
+            c.globalCompositeOperation = 'destination-out';
+            c.lineWidth = brushSize * 3; // Clear defined eraser radius independent of global
+        } else {
+            c.globalCompositeOperation = 'source-over';
+            c.strokeStyle = activeColor;
+            c.lineWidth = brushSize;
+        }
         c.lineCap = 'round';
         c.lineJoin = 'round';
-        c.globalCompositeOperation = 'source-over';
     };
+
+    /* ── requestAnimationFrame High Performance Draw Loop ── */
+    useEffect(() => {
+        let maxRafId: number;
+
+        const drawLoop = () => {
+            if (isDrawingRef.current && pointsQueue.current.length > 0 && (activeTool === 'pen' || activeTool === 'eraser')) {
+                const c = ctx();
+                if (c && lastPoint.current) {
+                    setupCtx(c, activeTool === 'eraser');
+                    
+                    let prev = lastPoint.current;
+                    c.beginPath();
+                    c.moveTo(prev.x, prev.y);
+                    
+                    // Flush the batched point queue using quadratic smoothed interpolation
+                    while (pointsQueue.current.length > 0) {
+                        const p = pointsQueue.current.shift()!;
+                        const mx = (prev.x + p.x) / 2;
+                        const my = (prev.y + p.y) / 2;
+                        c.quadraticCurveTo(prev.x, prev.y, mx, my);
+                        prev = p;
+                    }
+                    
+                    c.stroke();
+                    lastPoint.current = prev;
+                }
+            }
+            maxRafId = requestAnimationFrame(drawLoop);
+        };
+
+        maxRafId = requestAnimationFrame(drawLoop);
+        return () => cancelAnimationFrame(maxRafId);
+    }, [activeTool, activeColor, brushSize]);
 
     /* ── Unified mouse events ── */
     const onMouseDown = (e: React.MouseEvent) => {
         if (activeTool === 'pan') {
-            setIsDragging(true);
-            dragStart.current = { x: e.clientX - offset.x, y: e.clientY - offset.y };
+            isDraggingRef.current = true;
+            dragStartRef.current = { 
+                x: e.clientX - transformRef.current.x, 
+                y: e.clientY - transformRef.current.y 
+            };
+            if (innerRef.current) innerRef.current.style.transition = 'none';
             return;
         }
+        
         const { x, y } = toCanvasCoords(e.clientX, e.clientY);
 
-        if (activeTool === 'pen') {
-            isDrawing.current = true;
+        if (activeTool === 'pen' || activeTool === 'eraser') {
+            isDrawingRef.current = true;
             lastPoint.current = { x, y };
+            pointsQueue.current = [];
+            
+            // Draw a single dot immediately on click
             const c = ctx();
-            if (!c) return;
-            setupCtx(c);
-            c.beginPath();
-            c.moveTo(x, y);
+            if (c) {
+                setupCtx(c, activeTool === 'eraser');
+                c.beginPath();
+                c.arc(x, y, (activeTool === 'eraser' ? brushSize * 3 : brushSize) / 2, 0, Math.PI * 2);
+                c.fill();
+            }
             return;
         }
-        if (activeTool === 'eraser') {
-            isDrawing.current = true;
-            return;
-        }
+        
         if (activeTool === 'shape') {
-            isDrawing.current = true;
+            isDrawingRef.current = true;
             shapeStart.current = { x, y };
-            // snapshot canvas so we can redraw preview each frame
             const c = ctx();
             const canvas = canvasRef.current;
             if (c && canvas) {
@@ -133,6 +250,7 @@ export default function MapViewer({ map, mapName }: Props) {
             }
             return;
         }
+        
         if (activeTool === 'marker') {
             const canvas = canvasRef.current!;
             setPins(prev => [
@@ -143,58 +261,37 @@ export default function MapViewer({ map, mapName }: Props) {
     };
 
     const onMouseMove = (e: React.MouseEvent) => {
-        // Update coordinate readout
+        // High-perf sub-DOM update for coordinate readout (bypasses massive React re-render)
         const canvas = canvasRef.current;
-        if (canvas) {
+        if (canvas && coordsRef.current) {
             const { x, y } = toCanvasCoords(e.clientX, e.clientY);
-            setCoords({
-                x: Math.round((x / canvas.width) * 100),
-                y: Math.round((y / canvas.height) * 100),
-            });
+            coordsRef.current.innerText = `X: ${String(Math.round((x / canvas.width) * 100)).padStart(3, '0')} · Y: ${String(Math.round((y / canvas.height) * 100)).padStart(3, '0')}`;
         }
 
-        if (activeTool === 'pan' && isDragging) {
-            setOffset({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y });
+        if (activeTool === 'pan' && isDraggingRef.current) {
+            transformRef.current.x = e.clientX - dragStartRef.current.x;
+            transformRef.current.y = e.clientY - dragStartRef.current.y;
+            updateTransformUI();
             return;
         }
-        if (activeTool === 'pen' && isDrawing.current) {
-            const c = ctx();
-            if (!c) return;
+        
+        if ((activeTool === 'pen' || activeTool === 'eraser') && isDrawingRef.current) {
             const { x, y } = toCanvasCoords(e.clientX, e.clientY);
-            const prev = lastPoint.current ?? { x, y };
-            // Smooth quadratic curve
-            const mx = (prev.x + x) / 2;
-            const my = (prev.y + y) / 2;
-            setupCtx(c);
-            c.quadraticCurveTo(prev.x, prev.y, mx, my);
-            c.stroke();
-            c.beginPath();
-            c.moveTo(mx, my);
-            lastPoint.current = { x, y };
+            pointsQueue.current.push({ x, y });
             return;
         }
-        if (activeTool === 'eraser' && isDrawing.current) {
-            const c = ctx();
-            if (!c) return;
-            const { x, y } = toCanvasCoords(e.clientX, e.clientY);
-            const eraserR = brushSize * 4;
-            c.save();
-            c.globalCompositeOperation = 'destination-out';
-            c.beginPath();
-            c.arc(x, y, eraserR, 0, Math.PI * 2);
-            c.fill();
-            c.restore();
-        }
-        if (activeTool === 'shape' && isDrawing.current && shapeStart.current) {
+        
+        if (activeTool === 'shape' && isDrawingRef.current && shapeStart.current) {
             const c = ctx();
             if (!c || !snapshotRef.current) return;
-            const cvs = canvasRef.current!;
+            // Write layout back, then draw the preview
             c.putImageData(snapshotRef.current, 0, 0);
             const { x, y } = toCanvasCoords(e.clientX, e.clientY);
             const rx = Math.abs(x - shapeStart.current.x) / 2;
             const ry = Math.abs(y - shapeStart.current.y) / 2;
             const cx2 = (x + shapeStart.current.x) / 2;
             const cy2 = (y + shapeStart.current.y) / 2;
+            
             setupCtx(c);
             c.beginPath();
             c.ellipse(cx2, cy2, rx, ry, 0, 0, Math.PI * 2);
@@ -203,27 +300,16 @@ export default function MapViewer({ map, mapName }: Props) {
     };
 
     const onMouseUp = () => {
-        setIsDragging(false);
-        if (isDrawing.current) {
-            ctx()?.beginPath();
-            isDrawing.current = false;
+        isDraggingRef.current = false;
+        if (innerRef.current) innerRef.current.style.transition = 'transform 0.08s ease-out';
+        
+        if (isDrawingRef.current) {
+            isDrawingRef.current = false;
             lastPoint.current = null;
             shapeStart.current = null;
             snapshotRef.current = null;
+            pointsQueue.current = [];
         }
-    };
-
-    /* ── Touch support ── */
-    const onTouchStart = (e: React.TouchEvent) => {
-        if (activeTool !== 'pan') return;
-        const t = e.touches[0];
-        setIsDragging(true);
-        dragStart.current = { x: t.clientX - offset.x, y: t.clientY - offset.y };
-    };
-    const onTouchMove = (e: React.TouchEvent) => {
-        if (!isDragging) return;
-        const t = e.touches[0];
-        setOffset({ x: t.clientX - dragStart.current.x, y: t.clientY - dragStart.current.y });
     };
 
     const clearAll = () => {
@@ -232,10 +318,8 @@ export default function MapViewer({ map, mapName }: Props) {
         setPins([]);
     };
 
-    const resetView = () => { setScale(1); setOffset({ x: 0, y: 0 }); };
-
     const cursorStyle = () => {
-        if (activeTool === 'pan') return isDragging ? 'grabbing' : 'grab';
+        if (activeTool === 'pan') return isDraggingRef.current ? 'grabbing' : 'grab';
         const t = TOOLS.find(t => t.id === activeTool);
         return t?.cursor ?? 'default';
     };
@@ -249,12 +333,11 @@ export default function MapViewer({ map, mapName }: Props) {
                 <div style={{ animation: 'scan-line 8s linear infinite' }}
                     className="absolute left-0 right-0 h-px"
                     id="scanline"
-                // Inline keyframe defined at bottom
                 />
             </div>
 
             {/* ── TOP BAR ── */}
-            <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-3"
+            <div className="absolute top-0 left-0 right-0 z-30 flex items-center justify-between px-6 py-4"
                 style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.9) 0%, transparent 100%)', backdropFilter: 'blur(8px)' }}
             >
                 {/* Back link */}
@@ -282,16 +365,26 @@ export default function MapViewer({ map, mapName }: Props) {
                     >
                         {mapName}
                     </h1>
-                    <p className="text-[9px] tracking-[0.25em] text-cyan-400/50 font-mono mt-0.5">
-                        X: {String(coords.x).padStart(3, '0')} · Y: {String(coords.y).padStart(3, '0')}
+                    {/* Bypassing React render for raw high speed coordinate updates */}
+                    <p ref={coordsRef} className="text-[9px] tracking-[0.25em] text-cyan-400/50 font-mono mt-0.5">
+                        X: 000 · Y: 000
                     </p>
                 </div>
 
                 {/* Zoom controls */}
                 <div className="flex items-center gap-2">
                     <button
-                        onClick={() => setScale(s => Math.min(s + 0.5, 8))}
-                        className="w-8 h-8 rounded-lg text-white font-bold text-sm transition-all duration-200 flex items-center justify-center"
+                        onClick={() => {
+                            const cw = containerRef.current?.clientWidth || 0;
+                            const ch = containerRef.current?.clientHeight || 0;
+                            const t = transformRef.current;
+                            const newScale = Math.min(t.scale + 0.5, 4);
+                            t.x = (cw / 2) - ((cw / 2) - t.x) * (newScale / t.scale);
+                            t.y = (ch / 2) - ((ch / 2) - t.y) * (newScale / t.scale);
+                            t.scale = newScale;
+                            updateTransformUI();
+                        }}
+                        className="w-8 h-8 rounded-lg text-white font-bold text-sm transition-all duration-200 flex items-center justify-center cursor-pointer"
                         style={{
                             background: 'rgba(255,255,255,0.08)',
                             border: '1px solid rgba(255,255,255,0.12)',
@@ -301,10 +394,21 @@ export default function MapViewer({ map, mapName }: Props) {
                     >
                         +
                     </button>
-                    <span className="text-white/40 text-xs w-12 text-center font-mono">{Math.round(scale * 100)}%</span>
+                    <span ref={zoomLevelRef} className="text-white/40 text-xs w-12 text-center font-mono tracking-widest">
+                        100%
+                    </span>
                     <button
-                        onClick={() => setScale(s => Math.max(s - 0.5, 0.3))}
-                        className="w-8 h-8 rounded-lg text-white font-bold text-sm transition-all duration-200 flex items-center justify-center"
+                        onClick={() => {
+                            const cw = containerRef.current?.clientWidth || 0;
+                            const ch = containerRef.current?.clientHeight || 0;
+                            const t = transformRef.current;
+                            const newScale = Math.max(t.scale - 0.5, 0.5);
+                            t.x = (cw / 2) - ((cw / 2) - t.x) * (newScale / t.scale);
+                            t.y = (ch / 2) - ((ch / 2) - t.y) * (newScale / t.scale);
+                            t.scale = newScale;
+                            updateTransformUI();
+                        }}
+                        className="w-8 h-8 rounded-lg text-white font-bold text-sm transition-all duration-200 flex items-center justify-center cursor-pointer"
                         style={{
                             background: 'rgba(255,255,255,0.08)',
                             border: '1px solid rgba(255,255,255,0.12)',
@@ -316,7 +420,7 @@ export default function MapViewer({ map, mapName }: Props) {
                     </button>
                     <button
                         onClick={resetView}
-                        className="px-3 h-8 rounded-lg text-white/60 text-xs tracking-wide transition-all duration-200"
+                        className="px-3 h-8 rounded-lg text-white/60 text-xs tracking-wide transition-all duration-200 cursor-pointer ml-1"
                         style={{
                             background: 'rgba(255,255,255,0.06)',
                             border: '1px solid rgba(255,255,255,0.1)',
@@ -324,7 +428,7 @@ export default function MapViewer({ map, mapName }: Props) {
                         onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.13)')}
                         onMouseLeave={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.06)')}
                     >
-                        Reset
+                        RESET
                     </button>
                 </div>
             </div>
@@ -338,28 +442,33 @@ export default function MapViewer({ map, mapName }: Props) {
                 onMouseMove={onMouseMove}
                 onMouseUp={onMouseUp}
                 onMouseLeave={onMouseUp}
-                onTouchStart={onTouchStart}
-                onTouchMove={onTouchMove}
-                onTouchEnd={() => { setIsDragging(false); isDrawing.current = false; }}
             >
+                {/* 
+                  Removed display: flex & justify-content: center.
+                  The inner container is strictly controlled by mathematical transform translation relative 
+                  to its natural 0,0 top-left origin, precisely syncing the physics cursor offsets.
+                 */}
                 <div
                     style={{
-                        transform: `translate(${offset.x}px, ${offset.y}px) scale(${scale})`,
-                        transformOrigin: 'center center',
-                        transition: isDragging ? 'none' : 'transform 0.08s ease-out',
                         position: 'absolute',
                         inset: 0,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
                     }}
                 >
-                    <div ref={innerRef} className="relative" style={{ width: '85vw', height: '85vh' }}>
+                    <div 
+                        ref={innerRef} 
+                        className="relative" 
+                        style={{ 
+                            width: '85vw', 
+                            height: '85vh',
+                            transformOrigin: '0 0', // THIS IS THE KEY TO FIXING JITTERY ZOOM!
+                            transition: 'transform 0.08s ease-out'
+                        }}
+                    >
                         {/* Map image */}
                         <img
                             src={map}
                             alt={mapName}
-                            className="w-full h-full object-contain"
+                            className="w-full h-full object-contain pointer-events-none"
                             draggable={false}
                         />
 
@@ -384,13 +493,12 @@ export default function MapViewer({ map, mapName }: Props) {
                             }}
                         />
 
-                        {/* Drawing canvas */}
+                        {/* Native Drawing canvas */}
                         <canvas
                             ref={canvasRef}
                             width={canvasSize.w}
                             height={canvasSize.h}
-                            className="absolute inset-0 w-full h-full"
-                            style={{ pointerEvents: 'none' }}
+                            className="absolute inset-0 w-full h-full pointer-events-none"
                         />
 
                         {/* Custom dropped pins */}
@@ -417,74 +525,19 @@ export default function MapViewer({ map, mapName }: Props) {
                 </div>
             </div>
 
-            {/* ── FLOATING TOOL PANEL (bottom center) ── */}
+            {/* ── PROFESSIONAL FLOATING TOOL PANEL ── */}
             <div
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 z-30 flex flex-col items-center gap-3"
+                className="absolute bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-stretch gap-4"
                 style={{ pointerEvents: 'auto' }}
             >
-                {/* Brush size + Color row */}
+                {/* Tools Box */}
                 <div
-                    className="flex items-center gap-4 px-5 py-3 rounded-2xl"
+                    className="flex items-center gap-2 p-2 rounded-2xl"
                     style={{
-                        background: 'rgba(6,12,28,0.85)',
-                        backdropFilter: 'blur(20px)',
-                        border: '1px solid rgba(56,189,248,0.15)',
-                        boxShadow: '0 0 24px rgba(0,0,0,0.6)',
-                    }}
-                >
-                    {/* Brush size */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-white/30 text-[9px] tracking-[0.3em] uppercase" style={{ fontFamily: 'Exo 2, sans-serif' }}>Size</span>
-                        <input
-                            type="range"
-                            min={2}
-                            max={20}
-                            value={brushSize}
-                            onChange={e => setBrushSize(Number(e.target.value))}
-                            className="w-20 accent-cyan-400"
-                            style={{ cursor: 'pointer' }}
-                        />
-                        <span className="text-cyan-400/70 text-xs font-mono w-4">{brushSize}</span>
-                    </div>
-
-                    {/* Divider */}
-                    <div className="w-px h-5 bg-white/10" />
-
-                    {/* Color swatches */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-white/30 text-[9px] tracking-[0.3em] uppercase" style={{ fontFamily: 'Exo 2, sans-serif' }}>Color</span>
-                        <div className="flex gap-1.5">
-                            {COLORS.map(c => (
-                                <button
-                                    key={c.hex}
-                                    title={c.label}
-                                    onClick={() => setActiveColor(c.hex)}
-                                    className="rounded-full transition-all duration-200"
-                                    style={{
-                                        width: activeColor === c.hex ? 18 : 14,
-                                        height: activeColor === c.hex ? 18 : 14,
-                                        background: c.hex,
-                                        boxShadow: activeColor === c.hex
-                                            ? `0 0 10px ${c.hex}, 0 0 20px ${c.hex}80`
-                                            : 'none',
-                                        border: activeColor === c.hex
-                                            ? `2px solid ${c.hex}`
-                                            : '1px solid rgba(255,255,255,0.2)',
-                                    }}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                </div>
-
-                {/* Tool buttons row */}
-                <div
-                    className="flex items-center gap-2 px-4 py-3 rounded-2xl"
-                    style={{
-                        background: 'rgba(6,12,28,0.9)',
+                        background: 'rgba(9, 9, 11, 0.65)',
                         backdropFilter: 'blur(24px)',
+                        boxShadow: '0 4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
                         border: '1px solid rgba(255,255,255,0.08)',
-                        boxShadow: `0 0 40px rgba(0,0,0,0.7), 0 0 ${activeTool !== 'pan' ? '20px rgba(34,211,238,0.1)' : '0px transparent'}`,
                     }}
                 >
                     {TOOLS.map(t => {
@@ -494,82 +547,128 @@ export default function MapViewer({ map, mapName }: Props) {
                                 key={t.id}
                                 onClick={() => setActiveTool(t.id)}
                                 title={t.label}
-                                className="flex flex-col items-center gap-1 rounded-xl transition-all duration-200"
+                                className="flex flex-col items-center justify-center rounded-xl transition-all duration-200 gap-1.5 cursor-pointer relative"
                                 style={{
-                                    width: 52,
-                                    height: 52,
-                                    background: isActive
-                                        ? 'rgba(34,211,238,0.18)'
-                                        : 'rgba(255,255,255,0.04)',
-                                    border: isActive
-                                        ? '1px solid rgba(34,211,238,0.6)'
-                                        : '1px solid rgba(255,255,255,0.08)',
-                                    boxShadow: isActive
-                                        ? '0 0 16px rgba(34,211,238,0.3), inset 0 0 12px rgba(34,211,238,0.1)'
-                                        : 'none',
-                                    transform: isActive ? 'scale(1.1)' : 'scale(1)',
-                                    justifyContent: 'center',
+                                    width: 60,
+                                    height: 56,
+                                    background: isActive ? 'rgba(34,211,238,0.12)' : 'transparent',
+                                    color: isActive ? '#22d3ee' : 'rgba(255,255,255,0.5)',
                                 }}
                                 onMouseEnter={e => {
-                                    if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                                    if (!isActive) {
+                                        e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                                        e.currentTarget.style.color = 'rgba(255,255,255,0.9)';
+                                    }
                                 }}
                                 onMouseLeave={e => {
-                                    if (!isActive) e.currentTarget.style.background = 'rgba(255,255,255,0.04)';
+                                    if (!isActive) {
+                                        e.currentTarget.style.background = 'transparent';
+                                        e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
+                                    }
                                 }}
                             >
-                                <span className="text-lg leading-none">{t.icon}</span>
-                                <span
-                                    className="text-[7px] tracking-wide uppercase leading-none"
-                                    style={{
-                                        color: isActive ? 'rgba(34,211,238,0.9)' : 'rgba(255,255,255,0.3)',
-                                        fontFamily: 'Exo 2, sans-serif',
-                                    }}
-                                >
-                                    {t.label.split(' ')[0]}
+                                {t.icon}
+                                <span className="text-[9px] font-semibold tracking-wide uppercase leading-none">
+                                    {t.label}
                                 </span>
+                                {isActive && (
+                                    <div className="absolute -bottom-2 left-1/2 -translate-x-1/2 w-8 h-1 bg-cyan-400 rounded-t-full shadow-[0_0_8px_rgba(34,211,238,0.8)]" />
+                                )}
                             </button>
                         );
                     })}
-
-                    {/* Divider */}
-                    <div className="w-px h-10 bg-white/10 mx-1" />
-
-                    {/* Clear All */}
-                    <button
-                        onClick={clearAll}
-                        title="Clear All"
-                        className="flex flex-col items-center gap-1 rounded-xl transition-all duration-200"
-                        style={{
-                            width: 52,
-                            height: 52,
-                            background: 'rgba(239,68,68,0.12)',
-                            border: '1px solid rgba(239,68,68,0.3)',
-                            justifyContent: 'center',
-                        }}
-                        onMouseEnter={e => {
-                            e.currentTarget.style.background = 'rgba(239,68,68,0.25)';
-                            e.currentTarget.style.boxShadow = '0 0 14px rgba(239,68,68,0.3)';
-                        }}
-                        onMouseLeave={e => {
-                            e.currentTarget.style.background = 'rgba(239,68,68,0.12)';
-                            e.currentTarget.style.boxShadow = 'none';
-                        }}
-                    >
-                        <span className="text-lg leading-none">🗑</span>
-                        <span className="text-[7px] tracking-wide uppercase leading-none text-red-400/60" style={{ fontFamily: 'Exo 2, sans-serif' }}>
-                            Clear
-                        </span>
-                    </button>
                 </div>
 
-                {/* Status hint */}
-                <div className="text-[9px] tracking-[0.25em] uppercase text-center pointer-events-none" style={{ fontFamily: 'Exo 2, sans-serif' }}>
-                    {activeTool === 'pan' && <span className="text-white/25">Scroll to zoom · Drag to pan</span>}
-                    {activeTool === 'pen' && <span className="text-cyan-400/60">Click and drag to draw freely</span>}
-                    {activeTool === 'marker' && <span className="text-cyan-400/60">Click to drop a strategy marker</span>}
-                    {activeTool === 'shape' && <span className="text-cyan-400/60">Click and drag to draw a zone</span>}
-                    {activeTool === 'eraser' && <span className="text-cyan-400/60">Drag over drawings to erase</span>}
+                {/* Sub-tools Box (Brush + Colors) */}
+                <div
+                    className="flex items-center gap-4 px-5 py-2 rounded-2xl"
+                    style={{
+                        background: 'rgba(9, 9, 11, 0.65)',
+                        backdropFilter: 'blur(24px)',
+                        boxShadow: '0 4px 24px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.1)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        opacity: (activeTool === 'pen' || activeTool === 'shape' || activeTool === 'eraser') ? 1 : 0.4,
+                        pointerEvents: (activeTool === 'pen' || activeTool === 'shape' || activeTool === 'eraser') ? 'auto' : 'none',
+                        transition: 'opacity 0.2s',
+                    }}
+                >
+                    {/* Brush size slider */}
+                    <div className="flex flex-col gap-1.5 justify-center mt-1">
+                        <span className="text-white/40 text-[9px] font-semibold tracking-[0.2em] uppercase">Thickness</span>
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="range"
+                                min={2}
+                                max={20}
+                                value={brushSize}
+                                onChange={e => setBrushSize(Number(e.target.value))}
+                                className="w-24 accent-cyan-400"
+                                style={{ cursor: 'pointer', height: '4px' }}
+                            />
+                            <div className="w-6 h-6 rounded-full bg-white/5 flex items-center justify-center border border-white/10 text-[10px] font-mono text-cyan-400">
+                                {brushSize}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-px h-8 bg-white/10 mx-1" />
+
+                    {/* Color swatches */}
+                    <div className="flex flex-col gap-1.5 justify-center mt-1">
+                        <span className="text-white/40 text-[9px] font-semibold tracking-[0.2em] uppercase">Palettes</span>
+                        <div className="flex gap-2 items-center h-[24px]">
+                            {COLORS.map(c => (
+                                <button
+                                    key={c.hex}
+                                    title={c.label}
+                                    onClick={() => setActiveColor(c.hex)}
+                                    className="rounded-full transition-all duration-200 cursor-pointer"
+                                    style={{
+                                        width: activeColor === c.hex ? 20 : 14,
+                                        height: activeColor === c.hex ? 20 : 14,
+                                        background: c.hex,
+                                        boxShadow: activeColor === c.hex
+                                            ? `0 0 12px ${c.hex}`
+                                            : 'none',
+                                        border: activeColor === c.hex
+                                            ? `2px solid #fff`
+                                            : '2px solid transparent',
+                                        opacity: activeTool === 'eraser' ? 0.2 : 1,
+                                        pointerEvents: activeTool === 'eraser' ? 'none' : 'auto'
+                                    }}
+                                />
+                            ))}
+                        </div>
+                    </div>
                 </div>
+
+                {/* Status Box - Clear action */}
+                <button
+                    onClick={clearAll}
+                    title="Clear Canvas"
+                    className="flex flex-col items-center justify-center rounded-2xl transition-all duration-200 px-5 gap-1.5 cursor-pointer group"
+                    style={{
+                        background: 'rgba(220, 38, 38, 0.1)',
+                        backdropFilter: 'blur(24px)',
+                        boxShadow: '0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(220,38,38,0.3)',
+                    }}
+                    onMouseEnter={e => {
+                        e.currentTarget.style.background = 'rgba(220, 38, 38, 0.2)';
+                        e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.6)';
+                    }}
+                    onMouseLeave={e => {
+                        e.currentTarget.style.background = 'rgba(220, 38, 38, 0.1)';
+                        e.currentTarget.style.borderColor = 'rgba(220, 38, 38, 0.3)';
+                    }}
+                >
+                    <span className="text-red-400 group-hover:text-red-300 transition-colors">
+                        {ICONS.trash}
+                    </span>
+                    <span className="text-[9px] font-semibold tracking-wide uppercase leading-none text-red-400 group-hover:text-red-300">
+                        Clear
+                    </span>
+                </button>
             </div>
 
             {/* CSS Keyframes */}
@@ -586,6 +685,27 @@ export default function MapViewer({ map, mapName }: Props) {
                 @keyframes map-glow {
                     0%, 100% { opacity: 0.6; }
                     50%      { opacity: 1; }
+                }
+                input[type=range] {
+                    -webkit-appearance: none;
+                    background: transparent;
+                }
+                input[type=range]::-webkit-slider-thumb {
+                    -webkit-appearance: none;
+                    height: 14px;
+                    width: 14px;
+                    border-radius: 50%;
+                    background: #22d3ee;
+                    cursor: pointer;
+                    margin-top: -5px;
+                    box-shadow: 0 0 10px rgba(34,211,238,0.5);
+                }
+                input[type=range]::-webkit-slider-runnable-track {
+                    width: 100%;
+                    height: 4px;
+                    cursor: pointer;
+                    background: rgba(255,255,255,0.1);
+                    border-radius: 2px;
                 }
             `}</style>
         </div>

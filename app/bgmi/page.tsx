@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useState } from 'react';
 
 const COMMAND_LINKS = [
     { label: 'PLAYERS', href: '/bgmi/players' },
@@ -28,11 +29,27 @@ const itemVariants = {
 
 export default function BGMIPage() {
     return (
-        <main className="min-h-screen w-screen overflow-x-hidden flex items-center justify-center text-white relative">
+        <main className="min-h-screen w-screen overflow-x-hidden flex flex-col items-center text-white relative">
+
+            {/* Fixed Fullscreen Background Video Layer */}
+            <video
+                autoPlay
+                loop
+                muted
+                playsInline
+                preload="auto"
+                className="fixed top-0 left-0 w-full h-full object-cover -z-30 pointer-events-none"
+            >
+                <source src="/videos/bgmi-glacier.mp4" type="video/mp4" />
+            </video>
+
+            {/* Dark Overlay Layer for Text Readability */}
+            <div className="fixed top-0 left-0 w-full h-full bg-black/50 -z-20 pointer-events-none" />
 
             {/* Breadcrumb back to home */}
             <Link
                 href="/"
+                prefetch={true}
                 className="absolute top-8 left-8 z-20 text-xs tracking-[0.3em] transition-colors hover:text-[#F3AF19]"
                 style={{ color: 'rgba(255,255,255,0.5)', fontFamily: 'Exo 2, sans-serif' }}
             >
