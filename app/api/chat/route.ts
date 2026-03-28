@@ -82,7 +82,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error("Gemini Error:", error);
     return NextResponse.json({
-      reply: "AI server is temporarily unavailable. Please try again shortly.",
+      reply: `AI server error: ${error instanceof Error ? error.message : 'Unknown error'}. Please check environment variables.`,
     });
   }
 }
