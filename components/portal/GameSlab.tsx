@@ -3,6 +3,9 @@
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { Syncopate } from 'next/font/google';
+
+const syncopate = Syncopate({ subsets: ['latin'], weight: '700' });
 
 type GameKey = 'cod' | 'ff' | 'bgmi';
 
@@ -100,12 +103,12 @@ export default function GameSlab(props: GameSlabProps) {
             <div
                 className="absolute inset-0 z-10 transition-all duration-300 pointer-events-none"
                 style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.03)',
-                    backdropFilter: 'blur(12px) saturate(150%)',
-                    WebkitBackdropFilter: 'blur(12px) saturate(150%)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.15)',
+                    backdropFilter: 'blur(12px) saturate(140%)',
+                    WebkitBackdropFilter: 'blur(12px) saturate(140%)',
                     borderRadius: '16px',
-                    border: `1px solid ${isHovered ? cfg.accent : 'rgba(255, 255, 255, 0.1)'}`,
-                    boxShadow: isHovered ? edgeGlow : `0 4px 30px rgba(0, 0, 0, 0.5)`,
+                    border: `1px solid ${isHovered ? cfg.accent : 'rgba(225, 245, 254, 0.20)'}`,
+                    boxShadow: isHovered ? edgeGlow : `0px 10px 40px rgba(0, 0, 0, 0.60)`,
                     transform: 'translateZ(0px)',
                     transformStyle: 'preserve-3d',
                 }}
@@ -141,32 +144,38 @@ export default function GameSlab(props: GameSlabProps) {
 
             {/* Floating 3D Text Overlays - Pushed forward */}
             <div
-                className="relative z-20 flex flex-col items-center pointer-events-none"
+                className="relative z-20 flex w-full flex-col items-center pointer-events-none"
                 style={{
                     // Push text forward in 3D space
                     transform: 'translateZ(50px)',
                     transformStyle: 'preserve-3d',
                 }}
             >
-                {/* Floating Shadow for text depth */}
-                <h2
-                    className="text-white font-black tracking-wider text-4xl mb-1 text-center transition-all duration-300 uppercase leading-none"
-                    style={{
-                        fontFamily: 'Rajdhani, sans-serif',
-                        textShadow: isHovered
-                            ? `0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px ${cfg.accent}`
-                            : '0 5px 15px rgba(0,0,0,0.8)'
-                    }}
-                >
-                    {props.title}
-                </h2>
+                {/* Title Wrapper for Layout Balance */}
+                <div className="flex h-[88px] w-full items-center justify-center px-4">
+                    {/* Floating Shadow for text depth */}
+                    <h2
+                        className="text-white font-black tracking-wider text-4xl text-center transition-all duration-300 uppercase leading-tight max-w-[95%] whitespace-normal"
+                        style={{
+                            fontFamily: 'Rajdhani, sans-serif',
+                            textShadow: isHovered
+                                ? `0 0 20px rgba(255, 255, 255, 0.8), 0 0 40px ${cfg.accent}`
+                                : '0 5px 15px rgba(0,0,0,0.8)'
+                        }}
+                    >
+                        {props.title}
+                    </h2>
+                </div>
 
-                <h3
-                    className="text-xs tracking-[0.2em] uppercase font-bold text-center mt-2"
-                    style={{ color: cfg.accent, fontFamily: 'Exo 2, sans-serif' }}
-                >
-                    {props.subtitle}
-                </h3>
+                {/* Subtitle / Description Container */}
+                <div className="mt-2 flex items-center justify-center">
+                    <h3
+                        className={`${syncopate.className} text-xs tracking-[0.2em] text-center uppercase`}
+                        style={{ color: cfg.accent }}
+                    >
+                        {props.subtitle}
+                    </h3>
+                </div>
 
                 {/* Enter Zone Button appearing on hover */}
                 <motion.div

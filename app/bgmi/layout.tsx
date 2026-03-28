@@ -2,6 +2,7 @@
 
 import Starfield from '@/components/portal/Starfield';
 import { motion } from 'framer-motion';
+import AIAssistant from '@/components/AIAssistant';
 
 /**
  * Shared layout for all /bgmi/* routes.
@@ -9,6 +10,7 @@ import { motion } from 'framer-motion';
  * Responsibilities:
  *  1. Render the Starfield canvas behind every BGMI sub-page
  *  2. Wrap children in a Framer Motion fade so navigation feels smooth
+ *  3. Render the floating AI Strategy Assistant widget (top-right, z-[9999])
  *
  * The Starfield is already fixed-positioned (z-index -10) and handles its
  * own resize / cleanup — nothing extra needed here.
@@ -18,6 +20,9 @@ export default function BGMILayout({ children }: { children: React.ReactNode }) 
         <div className="relative min-h-screen overflow-x-hidden">
             {/* ── Shared cosmic background ── */}
             <Starfield />
+
+            {/* ── AI Strategy Assistant (floating, top-right) ── */}
+            <AIAssistant />
 
             {/* ── Per-page content with smooth fade-in ── */}
             <motion.div

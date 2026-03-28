@@ -3,6 +3,10 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useState } from 'react';
+import { Inter_Tight, JetBrains_Mono } from 'next/font/google';
+
+const interTight = Inter_Tight({ subsets: ['latin'], weight: '900' });
+const jetbrainsMono = JetBrains_Mono({ subsets: ['latin'], weight: ['400', '700'] });
 
 const COMMAND_LINKS = [
     { label: 'PLAYERS', href: '/bgmi/players' },
@@ -29,18 +33,18 @@ const itemVariants = {
 
 export default function BGMIPage() {
     return (
-        <main className="min-h-screen w-screen overflow-x-hidden flex flex-col items-center text-white relative">
+        <main className="min-h-screen w-screen overflow-x-hidden overflow-y-auto flex flex-col items-center text-white relative" style={{ height: 'auto' }}>
 
             {/* Fixed Fullscreen Background Video Layer */}
             <video
                 autoPlay
-                loop
                 muted
+                loop
                 playsInline
                 preload="auto"
-                className="fixed top-0 left-0 w-full h-full object-cover -z-30 pointer-events-none"
+                className="fixed top-0 left-0 w-full h-full object-cover -z-10"
             >
-                <source src="/videos/bgmi-glacier.mp4" type="video/mp4" />
+                <source src="/videos/bgmi-background.mp4" type="video/mp4" />
             </video>
 
             {/* Dark Overlay Layer for Text Readability */}
@@ -73,14 +77,9 @@ export default function BGMIPage() {
                         ◆ BATTLEGROUND ZONE
                     </p>
                     <h1
-                        className="text-[6rem] sm:text-8xl md:text-[10rem] font-black leading-none tracking-tighter"
+                        className={`${interTight.className} text-[6rem] sm:text-8xl md:text-[10rem] uppercase tracking-[0.15em] text-[#D1D9E6] drop-shadow-[0_0_15px_rgba(255,255,255,0.2)]`}
                         style={{
-                            background: 'linear-gradient(135deg, #F3AF19 0%, #B87333 100%)',
-                            WebkitBackgroundClip: 'text',
-                            WebkitTextFillColor: 'transparent',
-                            backgroundClip: 'text',
-                            fontFamily: 'Rajdhani, sans-serif',
-                            textShadow: '0 20px 40px rgba(0,0,0,0.5)'
+                            textShadow: '0 4px 10px rgba(0,0,0,0.5), inset 0 0 20px rgba(255,255,255,0.5)'
                         }}
                     >
                         BGMI
@@ -95,43 +94,40 @@ export default function BGMIPage() {
                     variants={containerVariants}
                     initial="hidden"
                     animate="show"
-                    className="flex flex-col items-center gap-4 md:gap-5 w-full max-w-sm md:max-w-md"
+                    className="flex flex-col items-center gap-3 w-full max-w-sm md:max-w-md mt-8 md:mt-12 max-h-[60vh] justify-center"
                 >
                     {COMMAND_LINKS.map((link) => (
                         <motion.div key={link.label} variants={itemVariants} className="w-full">
                             <Link href={link.href} className="block w-full">
                                 <motion.div
-                                    className="relative flex items-center justify-center p-4 w-full rounded-xl overflow-hidden group cursor-pointer"
+                                    className="relative flex items-center justify-center py-2.5 px-4 w-full rounded-xl overflow-hidden group cursor-pointer backdrop-blur-md transition-all duration-300 ease-out"
                                     style={{
-                                        background: 'rgba(255,255,255,0.02)',
-                                        border: '1px solid rgba(255,255,255,0.05)',
-                                        backdropFilter: 'blur(10px)',
+                                        background: 'rgba(255,255,255,0.05)',
+                                        border: '1px solid rgba(255,255,255,0.1)',
                                     }}
-                                    initial={{ opacity: 0.6, scale: 1 }}
+                                    initial={{ opacity: 0.8, scale: 1 }}
                                     whileHover={{
                                         opacity: 1,
                                         scale: 1.05,
-                                        borderColor: 'rgba(243,175,25,0.3)',
-                                        background: 'rgba(243,175,25,0.05)',
+                                        borderColor: 'rgba(0,242,255,0.4)',
+                                        background: 'rgba(0,242,255,0.1)',
+                                        boxShadow: '0 0 20px rgba(0,242,255,0.2)'
                                     }}
                                     transition={{ type: "spring", stiffness: 400, damping: 25 }}
                                 >
                                     <h2
-                                        className="text-lg md:text-2xl font-black uppercase tracking-[0.2em] transition-all duration-300 text-white/80 group-hover:text-[#F3AF19]"
-                                        style={{
-                                            fontFamily: 'Rajdhani, sans-serif',
-                                        }}
+                                        className={`${jetbrainsMono.className} text-lg font-bold uppercase tracking-[0.3em] transition-all duration-300 text-white/90 group-hover:text-[#00F2FF]`}
                                     >
-                                        <span className="relative z-10 transition-all duration-300 group-hover:drop-shadow-[0_0_12px_rgba(243,175,25,1)]">
+                                        <span className="relative z-10 transition-all duration-300 group-hover:drop-shadow-[0_0_10px_rgba(0,242,255,0.8)]">
                                             {link.label}
                                         </span>
                                     </h2>
 
-                                    {/* Subtle gold glow pulse from bottom */}
+                                    {/* Subtle Cyan glow pulse from bottom */}
                                     <div
                                         className="absolute bottom-0 left-0 right-0 h-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
                                         style={{
-                                            background: 'linear-gradient(to top, rgba(243,175,25,0.1) 0%, transparent 100%)'
+                                            background: 'linear-gradient(to top, rgba(0,242,255,0.15) 0%, transparent 100%)'
                                         }}
                                     />
                                 </motion.div>

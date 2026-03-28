@@ -1,9 +1,13 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import InteractiveStarfield from '@/components/InteractiveStarfield';
+import { useState, useEffect } from 'react';
+import { motion } from 'framer-motion';
+import { Orbitron, Syncopate } from 'next/font/google';
 import GameSlab from '@/components/portal/GameSlab';
+
+
+const orbitron = Orbitron({ subsets: ['latin'], weight: '900' });
+const syncopate = Syncopate({ subsets: ['latin'], weight: '700' });
 
 const GAMES = [
   { id: 'bgmi', title: 'BGMI', subtitle: 'Battle Royale', href: '/bgmi' },
@@ -22,11 +26,28 @@ export default function Home() {
 
   return (
     <div
-      className="relative min-h-screen w-screen overflow-hidden" // Removed bg-black to show the canvas behind
+      className="relative min-h-screen w-screen overflow-hidden" 
       style={{ perspective: '1200px', perspectiveOrigin: '50% 50%' }}
     >
-      <InteractiveStarfield />
-
+      {/* ── Cinematic Video Background ── */}
+      <div className="fixed inset-0 z-[-10] w-full h-full overflow-hidden">
+        <video
+          autoPlay
+          muted
+          loop
+          playsInline
+          className="absolute inset-0 w-full h-full object-cover"
+          style={{ filter: 'blur(4px)', transform: 'scale(1.04)' }}
+          src="/videos/shinobi_bg.mp4"
+        />
+        {/* Radial vignette — darkens edges, keeps center clear for portal cards */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(circle, transparent 20%, rgba(0,0,0,0.80) 100%)'
+          }}
+        />
+      </div>
       {/* Main content */}
       <div className="relative z-10 flex min-h-screen flex-col items-center justify-center">
 
@@ -41,20 +62,17 @@ export default function Home() {
             Esports Intelligence Platform
           </p>
           <h1
-            className="text-5xl font-black tracking-tight text-white md:text-7xl"
+            className={`${orbitron.className} uppercase text-6xl md:text-8xl tracking-widest text-white`}
             style={{
-              fontFamily: 'Rajdhani, sans-serif',
-              textShadow: '0 0 60px rgba(255,255,255,0.08)',
-              mixBlendMode: 'lighten',
+              textShadow: '0 0 15px rgba(255,255,255,0.2), 0 0 40px rgba(34,211,238,0.15)'
             }}
           >
             NEXUSOMNI
           </h1>
           <p
-            className="mt-4 text-sm tracking-[0.25em] text-zinc-400 uppercase"
-            style={{ fontFamily: 'Exo 2, sans-serif' }}
+            className={`${syncopate.className} mt-6 text-sm tracking-[0.25em] text-zinc-400 uppercase`}
           >
-            Choose your battleground
+            ◆ CHOOSE YOUR BATTLEGROUND ◆
           </p>
         </motion.div>
 
