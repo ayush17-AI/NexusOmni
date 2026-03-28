@@ -18,29 +18,14 @@ body {
 
 html {
   overflow: hidden; /* Prevents double scrollbar — the body scrolls */
+  background: #000 !important;
+  width: 100vw !important;
 }
 
 body {
   overflow-y: auto; /* Allows pages that need scrolling to scroll */
-}
-
-html {
-  /* Force background on the root to ensure it covers the entire viewport */
-  background: #000 url('/images/portals/starfield_bg.jpg') no-repeat center center fixed !important;
-  background-size: cover !important;
-  width: 100vw !important;
-}
-
-body {
   width: 100vw !important;
   background: transparent !important;
-}
-
-html,
-body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
 }
 
 /* GlitchArena Cyber-Brutalism Effects */

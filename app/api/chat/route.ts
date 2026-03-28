@@ -2,7 +2,7 @@ export const runtime = "nodejs";
 
 import { NextRequest, NextResponse } from "next/server";
 
-const SYSTEM_PROMPT = `You are NexusOmni AI, an advanced esports strategy analyst designed to help competitive players improve their gameplay.
+const nexusSystemPrompt = `You are NexusOmni AI, an advanced esports strategy analyst designed to help competitive players improve their gameplay.
 
 Your role is to provide clear, structured, and professional answers related to esports strategies, gameplay rotations, team coordination, and competitive gaming concepts. Your responses must sound like an experienced esports analyst.
 
@@ -46,13 +46,13 @@ export async function POST(req: NextRequest) {
     }
 
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           system_instruction: {
-            parts: [{ text: SYSTEM_PROMPT }],
+            parts: [{ text: nexusSystemPrompt }],
           },
           contents: [
             {
